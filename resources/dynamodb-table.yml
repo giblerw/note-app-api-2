@@ -1,4 +1,4 @@
-# Resource for serverless DynamoDB infrastructure.
+# Resource file for a serverless DynamoDB infrastructure integration.
 Resources:
 # 1. We are describing a DynamoDB table resource called NotesTable.
   NotesTable:

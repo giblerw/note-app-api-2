@@ -1,0 +1,33 @@
+# Resource file for a serverless S3 infrastructure integration.
+Resources:
+  AttachmentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      # Set the CORS policy --
+        # -- We needed to do this because we are going to be uploading
+        # directly from our frontend client
+      CorsConfiguration:
+        CorsRules:
+          -
+            AllowedOrigins:
+              - '*'
+            AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - DELETE
+              - HEAD
+            MaxAge: 3000
+
+# Print out the name of the bucket that is created --
+  # -- S3 buckets (unlike DynamoDB tables) are globally named. So it is
+  # not really possible for us to know what it is going to be called
+  # before hand. Hence, we let CloudFormation generate the name for us
+  # and we just add the Outputs: block to tell it to print it out so we
+  # can use it later.
+Outputs:
+  AttachmentsBucketName:
+    Value:
+      Ref: AttachmentsBucket
