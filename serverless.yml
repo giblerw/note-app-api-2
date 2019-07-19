@@ -8,15 +8,33 @@ plugins:
   - serverless-bundle # Package our functions with Webpack
   - serverless-offline
 
+custom:
+  # Our stage is based on what is passed in when running serverless
+  # commands. Or fallsback to what we have set in the provider section.
+  stage: ${opt:stage, self:provider.stage}
+  # Set the table name here so we can use it while testing locally
+  # The table name is based on the stage we are deploying to -
+      # The reason this is dynamically set is because we want to create
+      # a separate table when we deploy to a new stage (environment).
+      # So when we deploy to dev we will create a DynamoDB table called dev-notes
+      # and when we deploy to prod, it’ll be called prod-notes. This allows us
+      #to clearly separate the resources (and data) we use in our various environments.
+  tableName: ${self:custom.stage}-notes
+
 provider:
   name: aws
   runtime: nodejs8.10
   stage: dev
   region: us-east-1
 
-  # 'iamRoleStatements' defines the permission policy for the Lambda function.
-  # In this case Lambda functions are granted with permissions to access DynamoDB.
+    # These environment variables are made available to our functions
+  # under process.env.
+  environment:
+    tableName: ${self:custom.tableName}
+
   iamRoleStatements:
+    # This block is telling AWS that these are the only resources that
+    # our Lambda functions have access to.
     - Effect: Allow
       Action:
         - dynamodb:DescribeTable
@@ -26,7 +44,11 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:us-east-1:*:*"
+      # Restrict our IAM role permissions to
+      # the specific table for the stage
+      Resource:
+        - "Fn::GetAtt": [ NotesTable, Arn ]
+
 
 functions:
   # Defines an HTTP API endpoint that calls the main function in create.js
@@ -93,6 +115,8 @@ functions:
           authorizer: aws_iam
 
 # Create our resources with separate CloudFormation templates
-resources:
-  # API Gateway Errors
-  - ${file(resources/api-gateway-errors.yml)}
+  resources:
+    # API Gateway Errors
+    - ${file(resources/api-gateway-errors.yml)}
+    # DynamoDB
+    - ${file(resources/dynamodb-table.yml)}

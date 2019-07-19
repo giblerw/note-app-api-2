@@ -1,0 +1,23 @@
+# Resource for serverless DynamoDB infrastructure.
+Resources:
+# 1. We are describing a DynamoDB table resource called NotesTable.
+  NotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+# 2. The table we get from a custom variable; generated dynamically.
+      TableName: ${self:custom.tableName}
+# 3. We are also configuring the two attributes of our table as userId and noteId.
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: noteId
+          AttributeType: S
+# 4. Finally, we are provisioning the read/write capacity for our table through
+#    a couple of custom variables as well.
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: noteId
+          KeyType: RANGE
+      # Set the capacity to auto-scale
+      BillingMode: PAY_PER_REQUEST
