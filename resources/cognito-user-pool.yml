@@ -1,0 +1,38 @@
+# Resource file for a serverless Cognito-User-Pool infrastructure integration.
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      # Generate a name based on the stage
+      UserPoolName: ${self:custom.stage}-user-pool
+      # Set email as an alias --
+        # -- This is telling the User Pool that we want our users
+        # to be able to log in with their email as their username.
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      # Generate an app client name based on the stage
+      ClientName: ${self:custom.stage}-user-pool-client
+      UserPoolId:
+        Ref: CognitoUserPool
+      ExplicitAuthFlows:
+        - ADMIN_NO_SRP_AUTH
+      GenerateSecret: false
+
+# Print out the Id of the User Pool that is created --
+  # -- Just like our S3 bucket, we want CloudFormation to tell us
+  # the User Pool Id and the User Pool Client Id that is generated.
+  # We do this in the Outputs: block at the end.
+Outputs:
+  UserPoolId:
+    Value:
+      Ref: CognitoUserPool
+
+  UserPoolClientId:
+    Value:
+      Ref: CognitoUserPoolClient
